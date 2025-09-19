@@ -3,66 +3,76 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SEO Results</title>
+    <title>SEO Analyzer - Results</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/style.css">
   </head>
   <body class="p-4">
     <div class="container">
-      <a href="/" class="btn btn-link">← Analyze another URL</a>
-      <h1 class="mb-2">Results for {{ result.final_url }}</h1>
-      <h3>Overall score: <span class="badge bg-success">{{ result.score }} / 100</span></h3>
+      <h1 class="mb-3">SEO Analysis Results</h1>
 
-      <div class="row mt-4">
-        <div class="col-md-6">
-          <h5>Basic</h5>
-          <ul>
-            <li>Status code: {{ result.status_code }}</li>
-            <li>Fetch time: {{ result.fetch_time_s }}s</li>
-            <li>Uses HTTPS: {{ 'Yes' if result.uses_https else 'No' }}</li>
-            <li>Title: {{ result.title or '(missing)' }} ({{ result.title_length }} chars)</li>
-            <li>Meta description: {{ result.meta_description or '(missing)' }}</li>
-            <li>H1 count: {{ result.h1_count }}</li>
-            <li>Canonical: {{ result.canonical or '(missing)' }}</li>
-          </ul>
-        </div>
-        <div class="col-md-6">
-          <h5>Resources</h5>
-          <ul>
-            <li>Robots.txt: {{ 'Found' if result.robots_txt else 'Not found' }}</li>
-            <li>Sitemap.xml: {{ 'Found' if result.sitemap_exists else 'Not found' }}</li>
-            <li>Images: {{ result.images_with_alt }} / {{ result.images_total }} have alt</li>
-            <li>Links (sample): {{ result.total_links }}</li>
-            <li>Broken links (sample): {{ result.broken_rate_sample * 100 }}%</li>
-            <li>Has viewport meta: {{ 'Yes' if result.has_viewport else 'No' }}</li>
-            <li>JSON-LD structured data: {{ 'Yes' if result.json_ld else 'No' }}</li>
-          </ul>
-        </div>
-      </div>
+      <!-- Basic SEO Results -->
+      <h3>On-Page SEO</h3>
+      <ul class="list-group mb-4">
+        <li class="list-group-item">
+          <strong>Title:</strong> {{ analysis.title if analysis.title else "Missing" }}
+        </li>
+        <li class="list-group-item">
+          <strong>Meta Description:</strong> {{ analysis.description if analysis.description else "Missing" }}
+        </li>
+        <li class="list-group-item">
+          <strong>H1 Tags:</strong>
+          {% if analysis.h1_tags %}
+            <ul>
+              {% for h1 in analysis.h1_tags %}
+                <li>{{ h1 }}</li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            None found
+          {% endif %}
+        </li>
+        <li class="list-group-item">
+          <strong>Canonical:</strong> {{ analysis.canonical if analysis.canonical else "Missing" }}
+        </li>
+        <li class="list-group-item">
+          <strong>Images without ALT:</strong>
+          {% if analysis.images_without_alt %}
+            <ul>
+              {% for img in analysis.images_without_alt %}
+                <li>{{ img }}</li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            All images have ALT text
+          {% endif %}
+        </li>
+      </ul>
 
-      <hr>
-      <h5>Link samples</h5>
-      <div class="row">
-        <div class="col-md-6">
-          <h6>Internal (sample)</h6>
-          <ul>
-            {% for l in result.internal_links_sample %}
-            <li><a href="{{ l }}" target="_blank">{{ l }}</a></li>
-            {% endfor %}
-          </ul>
+      <!-- PageSpeed Insights Results -->
+      {% if pagespeed %}
+        <h3>PageSpeed Insights</h3>
+        <div class="card mb-4">
+          <div class="card-body">
+            <p><strong>Performance Score:</strong>
+              {{ (pagespeed.lighthouseResult.categories.performance.score * 100) | round(0) }}
+            </p>
+            <p><strong>SEO Score:</strong>
+              {{ (pagespeed.lighthouseResult.categories.seo.score * 100) | round(0) }}
+            </p>
+            <p><strong>First Contentful Paint:</strong>
+              {{ pagespeed.lighthouseResult.audits["first-contentful-paint"].displayValue }}
+            </p>
+            <p><strong>Largest Contentful Paint:</strong>
+              {{ pagespeed.lighthouseResult.audits["largest-contentful-paint"].displayValue }}
+            </p>
+            <p><strong>Speed Index:</strong>
+              {{ pagespeed.lighthouseResult.audits["speed-index"].displayValue }}
+            </p>
+          </div>
         </div>
-        <div class="col-md-6">
-          <h6>External (sample)</h6>
-          <ul>
-            {% for l in result.external_links_sample %}
-            <li><a href="{{ l }}" target="_blank">{{ l }}</a></li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
+      {% endif %}
 
-      <hr>
-      <p class="small text-muted">Tip: For a deeper audit (performance & SEO lab data) enable Google PageSpeed Insights/Lighthouse calls — see the README steps.</p>
+      <a href="/" class="btn btn-secondary">🔙 Analyze Another URL</a>
     </div>
   </body>
 </html>
